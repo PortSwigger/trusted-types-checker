@@ -23,7 +23,7 @@ class BurpExtender(IBurpExtender, IScannerCheck, IExtensionStateListener):
                 content_type = header.split(":")[1].strip().lower()
 
         if status_code == 200:
-            if content_type and "text/html" in content_type:
+            if content_type and ("text/html" in content_type or "text/javascript" in content_type or "application/javascript" in content_type or "application/xhtml+xml" in content_type):
                 match = re.search(r'trustedTypes\.createPolicy\s*\(\s*[\'"]default[\'"]', response_body, re.IGNORECASE)
                 if match:
                     start_offset = response_info.getBodyOffset() + match.start()
@@ -40,11 +40,13 @@ class BurpExtender(IBurpExtender, IScannerCheck, IExtensionStateListener):
                                                  "'default', noting that this may be required during transition towards using the Trusted Types security controls.",
                                                  start_offset, end_offset))
 
-                match = re.search(r'return\s+{.*?trust\s*:\s*false.*?}', response_body, re.IGNORECASE | re.DOTALL)
-                if match:
-                    start_offset = response_info.getBodyOffset() + match.start()
-                    end_offset = response_info.getBodyOffset() + match.end()
-                    issues.append(self._create_issue_with_markers(baseRequestResponse, "Trusted Types: Policy returns untrusted data", 
+                # reduce false positives by checking the search term "trust:false" comes in with JS that attempts to create a Trusted Types policy
+                if re.search(r'trustedTypes\.createPolicy\s*\(', response_body, re.IGNORECASE):
+                    match = re.search(r'return\s+{.*?trust\s*:\s*false.*?}', response_body, re.IGNORECASE | re.DOTALL)
+                    if match:
+                        start_offset = response_info.getBodyOffset() + match.start()
+                        end_offset = response_info.getBodyOffset() + match.end()
+                        issues.append(self._create_issue_with_markers(baseRequestResponse, "Trusted Types: Policy returns untrusted data", 
                                                  "<p>Trusted Types is a browser security feature that helps prevent Cross-Site Scripting (XSS) attacks by restricting "\
                                                  "the types of content that can be injected into the DOM, ensuring only trusted, sanitised content is used.</p>"\
                                                  "<p>A Trusted Types policy was found returning a data object with the 'trust' attribute explicitly set to 'false'. "\
@@ -55,6 +57,7 @@ class BurpExtender(IBurpExtender, IScannerCheck, IExtensionStateListener):
                                                  "marked as 'true'.",
                                                  start_offset, end_offset))
 
+            if content_type and "text/html" in content_type:
                 if re.search(r"require-trusted-types-for 'script'", response_body, re.IGNORECASE) is None:
                     issues.append(self._create_issue(baseRequestResponse, "Trusted Types: Missing 'require-trusted-types-for' directive in CSP",
                                                  "<p>Trusted Types is a browser security feature that helps prevent Cross-Site Scripting (XSS) attacks by restricting "\
@@ -134,7 +137,9 @@ class BurpExtender(IBurpExtender, IScannerCheck, IExtensionStateListener):
         print("Trusted Types Checker was unloaded")
 
     def consolidateDuplicateIssues(self, existingIssue, newIssue):
-        return 0  # Report both issues
+        if existingIssue.getIssueName() == newIssue.getIssueName():
+            return -1
+        return 0
 
 class CustomScanIssue(IScanIssue):
 
