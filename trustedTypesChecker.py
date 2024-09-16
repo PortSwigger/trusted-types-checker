@@ -141,6 +141,9 @@ class BurpExtender(IBurpExtender, IScannerCheck, IExtensionStateListener):
             return -1
         return 0
 
+    def doActiveScan(self, baseRequestResponse, insertionPoint):
+        return None
+
 class CustomScanIssue(IScanIssue):
 
     def __init__(self, url, name, detail, baseRequestResponse, confidence, severity, remediation):
