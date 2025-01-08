@@ -1,0 +1,13 @@
+Uuid: 1894edb751244e52856efa092d58979d
+ExtensionType: 2
+Name: Trusted Types Checker
+RepoName: trusted-types-checker
+ScreenVersion: 1.0
+SerialVersion: 1
+MinPlatformVersion: 0
+ProOnly: True
+Author: Felix Ryan
+ShortDescription: Check for a number of misconfigurations of the Trusted Types functionality available in some browsers.
+EntryPoint: trustedTypesChecker.py
+BuildCommand: 
+SupportedProducts: Pro

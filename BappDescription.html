@@ -1,0 +1,19 @@
+<p>Trusted Types checker is a Burp Suite plugin that checks for a number of misconfigurations of the Trusted Types functionality available in some browsers.</p>
+
+<h2>What are Trusted Types?</h2>
+
+<p>Trusted Types is a browser security mechanism designed to mitigate Cross-Site Scripting (XSS) attacks by enforcing stricter controls over dynamic content injection into the DOM. In traditional web development, potentially dangerous content such as unsanitised user input can be injected into the DOM using JavaScript APIs like innerHTML or eval, leading to XSS vulnerabilities. Trusted Types introduces a layer of protection by restricting which types of content can be assigned to certain critical DOM APIs. Developers must use "trusted" objects that are created through well-defined policies, rather than raw strings or untrusted inputs, ensuring that only sanitised or vetted content is allowed. This prevents unsafe JavaScript code from being executed via common XSS vectors.</p>
+
+<p>To leverage Trusted Types, developers create policies using the TrustedTypes.createPolicy() function, which defines how untrusted data is processed and converted into a trusted type. The policies can specify allowed content transformations, such as sanitisation of HTML or stripping of unsafe script tags. Trusted Types are enforced through the Content Security Policy (CSP) by using directives like require-trusted-types-for 'script', which forces the browser to allow script execution only if it adheres to Trusted Types policies. Furthermore, developers can specify which policies are trusted via the trusted-types directive, enabling granular control over which policies can be used on a page. This approach significantly reduces the risk of XSS by ensuring only content that has been properly vetted through security policies is dynamically injected into the DOM.</p>
+
+<h2>What does this extension check for?</h2>
+
+<ul>
+	<li>Creation of a Trusted Types policy named "default"</li>
+	<li>Trusted Types policies that return untrusted data</li>
+	<li>Missing "require-trusted-types-for 'script'" directive in the application's Content Security Policy (CSP)</li>
+	<li>Missing "trusted-types" directive in the app's CSP</li>
+	<li>Use of the insecure "allow-duplicates" directive in Trusted Types</li>
+	<li>Use of the "default" Trusted Types policy or where the directive is set but with no policy specified</li>
+	<li>Where Trusted Types policies are activtely disabled in CSP</li>
+</ul>
